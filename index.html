@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tyler White | Home Buyer's Hub</title>
+    <title>Tyler White | REALTOR®</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
+        /* Custom Animation for smooth fading */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50">
     <div id="root"></div>
 
     <script type="text/babel">
-        // Bringing in the icons from the library
+        // --- SETUP: FIXING IMPORTS FOR THE BROWSER ---
+        const { useState, useEffect, useRef } = React;
+        
+        // This replaces the "import { Calculator... } from 'lucide-react'" line
         const { 
             Calculator, CheckSquare, HelpCircle, BookOpen, Home, Phone, Mail, MapPin, 
             ChevronDown, ChevronUp, DollarSign, Calendar, Percent, FileText, User, 
@@ -26,12 +35,11 @@
             Share2, Copy, Check 
         } = lucide;
 
-        const { useState, useEffect, useRef } = React;
+        // --- START OF YOUR ORIGINAL CODE ---
 
-        // --- PASTE YOUR DATA CONSTANTS HERE ---
-        const NB_TAX_RATE = 0.01;
+        const NB_TAX_RATE = 0.01; // 1% Land Transfer Tax for New Brunswick
         const AVG_LEGAL_FEE = 1200;
-        const REGISTRATION_FEE = 170;
+        const REGISTRATION_FEE = 85 * 2; // Deed + Mortgage registration approx
         const INSPECTION_EST = 500;
 
         const CHECKLISTS = {
@@ -63,51 +71,840 @@
         };
 
         const FAQS = [
-            { question: "What is the difference between a deposit and a down payment?", answer: "A deposit is paid when your offer is accepted. A down payment is the total cash at closing." },
-            { question: "What are closing costs?", answer: "One-time fees like Land Transfer Tax (1%), legal fees, and adjustments. Budget 1.5% - 2.5%." },
-            { question: "Why do I need a REALTOR®?", answer: "They protect your interests and provide access to the MLS® system." }
+            {
+                question: "What is the difference between a deposit and a down payment?",
+                answer: "A deposit is a sum of money paid when your offer is accepted to show good faith (usually held in trust). A down payment is the total cash you put towards the purchase price at closing. Your deposit usually counts towards your down payment."
+            },
+            {
+                question: "What are closing costs?",
+                answer: "These are one-time fees paid on the day you take possession. In New Brunswick, this includes Land Transfer Tax (1%), legal fees, title insurance, and property tax adjustments. It is generally recommended to budget 1.5% - 2.5% of the purchase price."
+            },
+            {
+                question: "Why do I need a REALTOR®?",
+                answer: "A REALTOR® protects your interests, negotiates on your behalf, navigates complex paperwork, and provides access to the MLS® system. They ensure you don't overpay and help you avoid legal pitfalls."
+            },
+            {
+                question: "What is mortgage loan insurance (CMHC)?",
+                answer: "If your down payment is less than 20%, you are required to purchase mortgage default insurance (often called CMHC insurance). This protects the lender, not you, but allows you to buy with as little as 5% down."
+            }
         ];
 
-        // --- YOUR COMPONENTS (STRICTLY FROM YOUR CODE) ---
+        const GLOSSARY = [
+            { term: "Amortization", def: "The length of time it takes to pay off a mortgage in full, usually 25 years." },
+            { term: "Closing Date", def: "The date when the sale becomes final and the new owner takes possession." },
+            { term: "Condition", def: "A clause in the offer (like financing or inspection) that must be met for the deal to proceed." },
+            { term: "Equity", def: "The difference between your home's market value and the amount you owe on the mortgage." },
+            { term: "MLS® System", def: "Multiple Listing Service®. A cooperative selling system operated by real estate boards used by REALTORS® to list and find properties." },
+            { term: "Title Insurance", def: "Insurance that protects you against fraud or defects in the title (ownership history) of the property." }
+        ];
+
+        const TESTIMONIALS = [
+            {
+                text: "We sincerely want to thank you, Tyler, for all your hard work. From our very first meeting, my husband and I felt confident trusting you with the search for our first home. You truly listened, were attentive and open to our wishes, always worked around our schedule, offered valuable advice, explained every detail, and guided us through each step of the process. We are so grateful!",
+                author: "Ірина Данилюк"
+            },
+            {
+                text: "From our first time my husband and I met with you, we new then that we had the right realtor to work with us. Tyler, you're a caring and passionate person and you had listened to every conversation we had during our process in selling and purchasing a new home. We would like to say THANK YOU from the bottom of our hearts and look forward to our new friendship. TO: Sellers or Buyers If your looking for a professional and caring realtor, please reach out to Tyler White at Exit Reality. YOU WILL NOT BE DISAPPOINTED!!",
+                author: "P & H Albert"
+            }
+        ];
+
+        // --- Gemini API Utilities ---
+
+        const callGemini = async (prompt, systemInstruction = "") => {
+            // *** IMPORTANT: PASTE YOUR GOOGLE AI STUDIO KEY HERE ***
+            const apiKey = ""; 
+            
+            if (!apiKey) return "Please add a Gemini API Key in the code to use the AI features.";
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response. Please try again.";
+                } catch (e) {
+                    if (i === 4) return "Sorry, I'm having trouble connecting to the AI service right now.";
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+        };
+
+        // --- Components ---
 
         const Header = ({ setView }) => (
             <header className="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50">
                 <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h1 onClick={() => setView('home')} className="text-2xl font-bold flex items-center gap-2 cursor-pointer hover:text-blue-300">
-                        <Home className="w-8 h-8 text-blue-400" /> Home Buyer's Hub
-                    </h1>
-                    <p className="text-slate-400 text-sm">Tyler White, REALTOR® • EXIT Realty Specialists</p>
+                    <div className="text-center md:text-left">
+                        <h1 
+                            onClick={() => setView('home')}
+                            className="text-2xl font-bold flex items-center justify-center md:justify-start gap-2 cursor-pointer hover:text-blue-300 transition-colors"
+                        >
+                            <Home className="w-8 h-8 text-blue-400" />
+                            Home Buyer's Hub
+                        </h1>
+                        <p className="text-slate-400 text-sm mt-1">Tyler White, REALTOR® • EXIT Realty Specialists</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        {/* Communication Buttons */}
+                        <div className="flex gap-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+                            <a 
+                                href="tel:5148163997" 
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-green-600 text-slate-300 hover:text-white transition-all" 
+                                title="Call Tyler"
+                            >
+                                <Phone className="w-5 h-5" />
+                            </a>
+                            <a 
+                                href="sms:5148163997" 
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-blue-500 text-slate-300 hover:text-white transition-all" 
+                                title="Text Tyler"
+                            >
+                                <MessageSquare className="w-5 h-5" />
+                            </a>
+                            <a 
+                                href="mailto:tyler@exitsj.ca" 
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-purple-500 text-slate-300 hover:text-white transition-all" 
+                                title="Email Tyler"
+                            >
+                                <Mail className="w-5 h-5" />
+                            </a>
+                        </div>
+
+                        <div className="w-px h-8 bg-slate-700 mx-1 hidden md:block"></div>
+
+                        <button 
+                            onClick={() => setView('home')}
+                            className="hidden md:block px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 transition-colors font-bold text-sm shadow-lg shadow-blue-900/20"
+                        >
+                            Dashboard
+                        </button>
+                    </div>
                 </div>
             </header>
         );
 
         const NavButton = ({ icon: Icon, label, active, onClick, special }) => (
-            <button onClick={onClick} className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${active ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-100 text-slate-600'}`}>
-                <Icon className="w-6 h-6 mb-2" />
+            <button
+                onClick={onClick}
+                className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all duration-200 border-2 ${
+                    active 
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' 
+                        : special 
+                            ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
+                            : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 hover:bg-slate-50'
+                }`}
+            >
+                <Icon className={`w-6 h-6 mb-2 ${active ? 'text-blue-600' : special ? 'text-purple-600' : 'text-slate-400'}`} />
                 <span className="font-medium text-sm">{label}</span>
             </button>
         );
 
-        // ... [Remaining Logic for Calculator, Checklists, etc. from your snippet] ...
+        const CalculatorTab = () => {
+            const [price, setPrice] = useState(450000);
+            const [downPaymentPercent, setDownPaymentPercent] = useState(5);
+            const [rate, setRate] = useState(4.5);
+            const [amortization, setAmortization] = useState(25);
+            const [propTaxRate, setPropTaxRate] = useState(1.25); // Approx average for KV/SJ area
+
+            // Derived values
+            const downPaymentAmount = price * (downPaymentPercent / 100);
+            const mortgageAmount = price - downPaymentAmount;
+            
+            // CMHC Estimation (Rough tiers for Canada)
+            let cmhcRate = 0;
+            if (downPaymentPercent < 10) cmhcRate = 0.04;
+            else if (downPaymentPercent < 15) cmhcRate = 0.031;
+            else if (downPaymentPercent < 20) cmhcRate = 0.028;
+            
+            const cmhcPremium = downPaymentPercent < 20 ? mortgageAmount * cmhcRate : 0;
+            const totalMortgage = mortgageAmount + cmhcPremium;
+
+            // Monthly Payment Calculation
+            const monthlyRate = rate / 100 / 12;
+            const numPayments = amortization * 12;
+            const mortgagePayment = (totalMortgage * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            
+            // Property Tax Calculation
+            const annualPropTax = price * (propTaxRate / 100);
+            const monthlyPropTax = annualPropTax / 12;
+            const totalMonthly = mortgagePayment + monthlyPropTax;
+
+            // Closing Costs
+            const landTransferTax = Math.max(price * NB_TAX_RATE, 0);
+            const totalClosing = landTransferTax + AVG_LEGAL_FEE + REGISTRATION_FEE + INSPECTION_EST;
+
+            return (
+                <div className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <Calculator className="w-5 h-5 text-blue-500" />
+                                Monthly Payment Estimator
+                            </h3>
+                            
+                            <div className="space-y-5 flex-grow">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Home Price</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-3 text-slate-400">$</span>
+                                        <input 
+                                            type="number" 
+                                            value={price} 
+                                            onChange={(e) => setPrice(Number(e.target.value))}
+                                            className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-600 mb-1">Down Payment (%)</label>
+                                        <input 
+                                            type="number" 
+                                            value={downPaymentPercent} 
+                                            onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-600 mb-1">Interest Rate (%)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.1"
+                                            value={rate} 
+                                            onChange={(e) => setRate(Number(e.target.value))}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-600 mb-1">Amortization (Yrs)</label>
+                                        <select 
+                                            value={amortization} 
+                                            onChange={(e) => setAmortization(Number(e.target.value))}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all"
+                                        >
+                                            <option value="15">15 Years</option>
+                                            <option value="20">20 Years</option>
+                                            <option value="25">25 Years</option>
+                                            <option value="30">30 Years</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-600 mb-1">Prop. Tax Rate (%)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.01"
+                                            value={propTaxRate} 
+                                            onChange={(e) => setPropTaxRate(Number(e.target.value))}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col justify-end">
+                                <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                                    <span>Mortgage Principal + Interest</span>
+                                    <span>${mortgagePayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                </div>
+                                <div className="flex justify-between items-center mb-4 text-sm text-slate-500">
+                                    <span>Est. Property Tax (Monthly)</span>
+                                    <span>${monthlyPropTax.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg mb-2">
+                                    <span className="text-blue-900 font-bold">Total Monthly</span>
+                                    <span className="text-2xl font-bold text-blue-700">${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                </div>
+                                <p className="text-xs text-slate-400 text-center">*Does not include heating or electricity.</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-green-600" />
+                                    Closing Cost Estimator (NB)
+                                </h3>
+                                
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                                        <span className="text-slate-600 text-sm">Land Transfer Tax (1%)</span>
+                                        <span className="font-semibold text-slate-700">${landTransferTax.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                                        <span className="text-slate-600 text-sm">Legal Fees (Est.)</span>
+                                        <span className="font-semibold text-slate-700">${AVG_LEGAL_FEE}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                                        <span className="text-slate-600 text-sm">Deed/Mortgage Registration (Est.)</span>
+                                        <span className="font-semibold text-slate-700">${REGISTRATION_FEE}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                                        <span className="text-slate-600 text-sm">Home Inspection (Est.)</span>
+                                        <span className="font-semibold text-slate-700">${INSPECTION_EST}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                                        <span className="text-slate-600 text-sm">Fuel/Tax Adjustments (Est.)</span>
+                                        <span className="font-semibold text-slate-700">$500</span>
+                                    </div>
+                                    
+                                    <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                                        <div className="flex justify-between items-center mb-2 pb-2 border-b border-green-200">
+                                            <span className="text-green-800 text-sm font-medium">Down Payment ({downPaymentPercent}%)</span>
+                                            <span className="font-bold text-green-800">${downPaymentAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-green-900 font-bold text-lg">Total Cash Needed</span>
+                                            <span className="text-xl font-bold text-green-700">${(totalClosing + downPaymentAmount + 500).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100 flex-grow">
+                                <h4 className="text-purple-800 font-bold text-sm mb-1 flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    First-Time Buyer Tip
+                                </h4>
+                                <p className="text-purple-700 text-xs leading-relaxed">
+                                    Don't forget the <strong>First-Time Home Buyer's Tax Credit (HBTC)</strong>! You can likely claim up to $10,000 on your tax return, resulting in a rebate of about <strong>$1,500</strong>. Ask your accountant!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-100 border-l-4 border-slate-400 p-4 rounded-r-lg text-sm text-slate-600 leading-relaxed">
+                        <strong>Disclaimer:</strong> All figures provided by this calculator are estimates for planning purposes only. 
+                        I am a REALTOR®, not a mortgage expert. Please reach out to a qualified mortgage specialist for exact costing and pre-approval.
+                    </div>
+                </div>
+            );
+        };
+
+        const ChecklistsTab = () => {
+            const [items, setItems] = useState(CHECKLISTS);
+            const [checkedState, setCheckedState] = useState({});
+
+            const toggleCheck = (id) => {
+                setCheckedState(prev => ({ ...prev, [id]: !prev[id] }));
+            };
+
+            const ChecklistGroup = ({ title, list }) => (
+                <div className="mb-8">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">{title}</h3>
+                    <div className="space-y-3">
+                        {list.map(item => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => toggleCheck(item.text)}
+                                className={`flex items-start p-3 rounded-lg border cursor-pointer transition-all ${
+                                    checkedState[item.text] ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-blue-300'
+                                }`}
+                            >
+                                <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center mr-3 transition-colors ${
+                                    checkedState[item.text] ? 'bg-blue-500 border-blue-500' : 'bg-white border-slate-300'
+                                }`}>
+                                    {checkedState[item.text] && <CheckSquare className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                                <span className={`${checkedState[item.text] ? 'text-slate-500 line-through' : 'text-slate-700'}`}>
+                                    {item.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="max-w-3xl mx-auto">
+                    <ChecklistGroup title="1. Getting Mortgage Ready" list={items.preApproval} />
+                    <ChecklistGroup title="2. The House Hunt" list={items.hunting} />
+                    <ChecklistGroup title="3. Closing Day" list={items.closing} />
+                </div>
+            );
+        };
+
+        const InfoTab = () => {
+            const [openIndex, setOpenIndex] = useState(null);
+
+            return (
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <HelpCircle className="w-6 h-6 text-purple-600" />
+                            Common Questions
+                        </h3>
+                        <div className="space-y-4">
+                            {FAQS.map((faq, index) => (
+                                <div key={index} className="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                                    <button 
+                                        onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                                        className="w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 hover:bg-slate-50"
+                                    >
+                                        {faq.question}
+                                        {openIndex === index ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    </button>
+                                    {openIndex === index && (
+                                        <div className="p-4 pt-0 text-slate-600 text-sm leading-relaxed bg-slate-50 border-t border-slate-100">
+                                            {faq.answer}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <BookOpen className="w-6 h-6 text-indigo-600" />
+                            Real Estate Glossary
+                        </h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-1">
+                            {GLOSSARY.map((item, index) => (
+                                <div key={index} className="p-4 border-b border-slate-100 last:border-0 hover:bg-indigo-50 transition-colors">
+                                    <span className="block font-bold text-slate-800 text-sm mb-1">{item.term}</span>
+                                    <span className="block text-slate-600 text-xs">{item.def}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AiAssistantTab = () => {
+            const [query, setQuery] = useState("");
+            const [response, setResponse] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const handleAsk = async (customPrompt = null) => {
+                const promptText = customPrompt || query;
+                if (!promptText.trim()) return;
+
+                setLoading(true);
+                setResponse(null);
+                setQuery(promptText); // Reflect clicked button in input
+
+                const systemPrompt = `
+                    You are an AI Real Estate Assistant for Tyler White, a REALTOR® based in Saint John, New Brunswick. 
+                    Your goal is to help potential home buyers with questions about the buying process, local neighborhoods (Quispamsis, Rothesay, Saint John), closing costs, and general real estate advice.
+                    
+                    Key Guidelines:
+                    1. Be friendly, professional, and encouraging.
+                    2. Keep answers concise (under 150 words usually).
+                    3. For specific legal or financial advice, always add a disclaimer to consult a lawyer or accountant.
+                    4. If asked about booking a viewing, suggest they use the "Contact Agent" tab to email Tyler directly.
+                    5. NB Specifics: Mention the 1% Land Transfer Tax, average closing costs, and the importance of a home inspection.
+                `;
+
+                const result = await callGemini(promptText, systemPrompt);
+                setResponse(result);
+                setLoading(false);
+            };
+
+            const suggestions = [
+                "What are the closing costs in NB?",
+                "Tell me about schools in Quispamsis",
+                "What should I look for in a century home?",
+                "Explain 'Deposit' vs 'Down Payment'"
+            ];
+
+            return (
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-purple-600" />
+                            Ask Tyler's AI Assistant
+                        </h3>
+                        <p className="text-slate-500 text-sm mb-6">
+                            Have a question about buying in NB? Ask away! I can help clarify terms, estimate costs, or tell you about neighbourhoods.
+                        </p>
+
+                        {/* Suggestion Chips */}
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            {suggestions.map((s, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleAsk(s)}
+                                    className="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-full hover:bg-purple-100 transition-colors border border-purple-100"
+                                >
+                                    ✨ {s}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Input Area */}
+                        <div className="relative mb-6">
+                            <textarea
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Type your question here..."
+                                className="w-full p-4 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all outline-none resize-none h-32 text-slate-700"
+                            />
+                            <button
+                                onClick={() => handleAsk()}
+                                disabled={loading || !query}
+                                className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
+                                    loading || !query 
+                                        ? 'bg-slate-200 text-slate-400' 
+                                        : 'bg-purple-600 text-white hover:bg-purple-700 shadow-md'
+                                }`}
+                            >
+                                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                            </button>
+                        </div>
+
+                        {/* Response Area */}
+                        {response && (
+                            <div className="animate-in fade-in slide-in-from-bottom-2">
+                                <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 relative">
+                                    <div className="absolute -top-3 left-6 bg-white px-2 py-1 text-xs font-bold text-slate-400 border border-slate-100 rounded shadow-sm">
+                                        AI Response
+                                    </div>
+                                    <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                        {response}
+                                    </p>
+                                </div>
+                                <p className="text-center text-xs text-slate-400 mt-4">
+                                    AI-generated information is for reference only. Please confirm important details with Tyler.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const AboutTab = () => {
+            const [drafting, setDrafting] = useState(false);
+            const [draftPrompt, setDraftPrompt] = useState("");
+            const [draftResult, setDraftResult] = useState("");
+            const [draftLoading, setDraftLoading] = useState(false);
+
+            const handleDraftEmail = async () => {
+                if (!draftPrompt) return;
+                setDraftLoading(true);
+                const system = "You are a helpful assistant drafting a professional email from a home buyer to their Realtor, Tyler White. Keep it polite, concise, and clear.";
+                const res = await callGemini(`Draft an email to Tyler: ${draftPrompt}`, system);
+                setDraftResult(res);
+                setDraftLoading(false);
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-8">
+                    
+                    {/* Profile Header Card */}
+                    <div id="profile-header" className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="h-32 bg-slate-800 relative">
+                            <div className="absolute -bottom-12 left-8 md:left-12">
+                                <div className="w-24 h-24 bg-slate-200 rounded-full border-4 border-white flex items-center justify-center shadow-md">
+                                    <User className="w-12 h-12 text-slate-400" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="pt-16 pb-8 px-8 md:px-12 flex flex-col md:flex-row gap-8 justify-between">
+                            <div>
+                                <h2 className="text-3xl font-bold text-slate-900">Tyler White</h2>
+                                <p className="text-blue-600 font-bold text-lg mb-4">REALTOR® • EXIT Realty Specialists</p>
+                                <p className="text-slate-600 max-w-lg leading-relaxed">
+                                    As a dedicated REALTOR® serving Saint John, Quispamsis, and Rothesay, I pride myself on making the home buying process as smooth as possible. With a focus on data-driven advice and personal connection, I help my clients find not just a house, but a home.
+                                </p>
+                            </div>
+                            
+                            <div className="flex flex-col gap-3 min-w-[250px]">
+                                {/* Call & Text Buttons Row */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <a 
+                                        href="tel:5148163997"
+                                        className="flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-md text-sm"
+                                    >
+                                        <Phone className="w-4 h-4" />
+                                        Call Me
+                                    </a>
+                                    <a 
+                                        href="sms:5148163997"
+                                        className="flex items-center justify-center gap-2 bg-blue-500 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-md text-sm"
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                        Text Me
+                                    </a>
+                                </div>
+
+                                <button 
+                                    onClick={() => window.location.href = 'mailto:tyler@exitsj.ca'}
+                                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg hover:shadow-slate-300 flex items-center justify-center gap-2"
+                                >
+                                    <Mail className="w-4 h-4" />
+                                    Book a Viewing
+                                </button>
+                                <button 
+                                    onClick={() => setDrafting(!drafting)}
+                                    className="w-full bg-purple-50 text-purple-700 py-3 rounded-xl font-bold hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 border border-purple-100"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    Draft Email with AI
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Email Drafter */}
+                        {drafting && (
+                            <div className="px-8 pb-8 animate-in fade-in slide-in-from-top-2">
+                                <div className="bg-purple-50 p-6 rounded-2xl text-left border border-purple-100">
+                                    <label className="block text-sm font-bold text-purple-800 mb-2">What do you want to ask Tyler?</label>
+                                    <textarea 
+                                        className="w-full p-3 text-sm border border-purple-200 rounded-xl mb-3 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all"
+                                        rows="3"
+                                        placeholder="e.g. Ask if the house on Main St is still available for a viewing this Saturday..."
+                                        value={draftPrompt}
+                                        onChange={(e) => setDraftPrompt(e.target.value)}
+                                    />
+                                    <button 
+                                        onClick={handleDraftEmail}
+                                        disabled={draftLoading}
+                                        className="bg-purple-600 text-white text-sm px-6 py-2.5 rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 shadow-sm"
+                                    >
+                                        {draftLoading ? "Writing..." : "Generate Professional Email"}
+                                    </button>
+                                    {draftResult && (
+                                        <div className="mt-4 p-4 bg-white rounded-xl border border-purple-100 text-sm text-slate-700 whitespace-pre-wrap relative group">
+                                            {draftResult}
+                                            <button 
+                                                onClick={() => navigator.clipboard.writeText(draftResult)}
+                                                className="absolute top-2 right-2 p-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Copy"
+                                            >
+                                                <CheckSquare className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        
+                        {/* Contact Info Card */}
+                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2">
+                                <User className="w-5 h-5 text-blue-500" />
+                                Contact Details
+                            </h3>
+                            <div className="space-y-6">
+                                {/* Phone Section */}
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-slate-500 mb-1">Phone</p>
+                                        <p className="text-slate-900 font-medium text-lg leading-none mb-2">(514) 816-3997 <span className="text-slate-400 text-sm font-normal">Cell</span></p>
+                                        <p className="text-slate-600 text-base">(506) 717-8343 <span className="text-slate-400 text-sm">Office</span></p>
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-px bg-slate-100"></div>
+
+                                {/* Email Section */}
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-slate-500 mb-1">Email</p>
+                                        <a href="mailto:tyler@exitsj.ca" className="text-slate-900 font-medium text-lg hover:text-blue-600 transition-colors block">tyler@exitsj.ca</a>
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-px bg-slate-100"></div>
+
+                                {/* Website Section */}
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600">
+                                        <Globe className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-slate-500 mb-1">Website</p>
+                                        <a href="https://tylerwhite.ca" target="_blank" rel="noreferrer" className="text-slate-900 font-medium text-lg hover:text-blue-600 transition-colors block">tylerwhite.ca</a>
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-px bg-slate-100"></div>
+
+                                {/* Office Section */}
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600">
+                                        <MapPin className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-slate-500 mb-1">Office Address</p>
+                                        <p className="text-slate-900 font-medium text-base leading-relaxed">
+                                            EXIT Realty Specialists<br/>
+                                            1020 Rothesay Road<br/>
+                                            Saint John, NB<br/>
+                                            E2H 2H8
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Testimonials Card */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <Star className="w-5 h-5 text-yellow-500" />
+                                Client Testimonials
+                            </h3>
+                            <div className="space-y-6">
+                                {TESTIMONIALS.map((t, i) => (
+                                    <div key={i} className="relative pl-6 border-l-4 border-yellow-200">
+                                        <Quote className="w-4 h-4 text-yellow-400 absolute -top-1 left-6 opacity-50" />
+                                        <p className="text-slate-600 italic mb-2 relative z-10">"{t.text}"</p>
+                                        <p className="text-slate-800 font-bold text-sm">— {t.author}</p>
+                                    </div>
+                                ))}
+                                <div className="bg-blue-50 p-4 rounded-xl text-center mt-8">
+                                    <p className="text-blue-800 font-medium text-sm">Ready to write your own success story?</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        };
 
         function HomeBuyerApp() {
             const [view, setView] = useState('home');
+
             return (
-                <div className="min-h-screen bg-slate-50">
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
                     <Header setView={setView} />
-                    <main className="max-w-4xl mx-auto p-6 text-center">
+                    
+                    <main className="max-w-4xl mx-auto p-6">
+                        
+                        {/* Navigation Grid */}
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-                            <NavButton icon={Calculator} label="Calculators" active={view === 'calc'} onClick={() => setView('calc')} />
-                            <NavButton icon={CheckSquare} label="Checklists" active={view === 'lists'} onClick={() => setView('lists')} />
-                            <NavButton icon={HelpCircle} label="FAQ" active={view === 'info'} onClick={() => setView('info')} />
-                            <NavButton icon={Sparkles} label="Ask AI" active={view === 'ai'} onClick={() => setView('ai')} />
-                            <NavButton icon={User} label="About Me" active={view === 'contact'} onClick={() => setView('contact')} />
+                            <NavButton 
+                                icon={Calculator} 
+                                label="Calculators" 
+                                active={view === 'calc'} 
+                                onClick={() => setView('calc')} 
+                            />
+                            <NavButton 
+                                icon={CheckSquare} 
+                                label="Checklists" 
+                                active={view === 'lists'} 
+                                onClick={() => setView('lists')} 
+                            />
+                            <NavButton 
+                                icon={HelpCircle} 
+                                label="FAQ & Info" 
+                                active={view === 'info'} 
+                                onClick={() => setView('info')} 
+                            />
+                            <NavButton 
+                                icon={Sparkles} 
+                                label="Ask AI" 
+                                active={view === 'ai'} 
+                                special={true}
+                                onClick={() => setView('ai')} 
+                            />
+                            <NavButton 
+                                icon={User} 
+                                label="About Me" 
+                                active={view === 'contact'} 
+                                onClick={() => setView('contact')} 
+                            />
                         </div>
-                        {view === 'home' && <div className="bg-white p-8 rounded-2xl shadow-sm">
-                            <h2 className="text-2xl font-bold mb-4">Welcome to Your Journey</h2>
-                            <p>Ready to find your home in Saint John or Quispamsis?</p>
-                        </div>}
-                        {/* More view logic here */}
+
+                        {/* Dynamic Content Area */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            {view === 'home' && (
+                                <div className="text-center pb-6 pt-2">
+                                    <div className="bg-white rounded-2xl px-8 pt-6 pb-8 shadow-sm border border-slate-100 max-w-2xl mx-auto">
+                                        <h2 className="text-2xl font-bold text-slate-800 mb-4">Welcome to Your Home Buying Journey</h2>
+                                        <p className="text-slate-600 mb-8 leading-relaxed">
+                                            Buying a home is one of the biggest decisions you'll make. I've created this tool to help you navigate the process in Quispamsis and beyond. 
+                                            Use the calculators to budget, the checklists to stay organized, and the FAQ to learn the lingo.
+                                        </p>
+                                        <div className="flex justify-center">
+                                            <button 
+                                                onClick={() => setView('contact')}
+                                                className="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 flex items-center gap-2 group"
+                                            >
+                                                Get Started
+                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-3 gap-6 mt-8 text-left">
+                                        <button 
+                                            onClick={() => setView('calc')}
+                                            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-green-200 transition-all cursor-pointer group"
+                                        >
+                                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <DollarSign className="w-5 h-5 text-green-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-800 mb-1">Know Your Budget</h3>
+                                            <p className="text-sm text-slate-500">Estimate monthly payments and New Brunswick closing costs.</p>
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => setView('lists')}
+                                            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group"
+                                        >
+                                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <CheckSquare className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-800 mb-1">Stay Organized</h3>
+                                            <p className="text-sm text-slate-500">Track your progress from pre-approval to closing day.</p>
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => setView('ai')}
+                                            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-purple-200 transition-all cursor-pointer group"
+                                        >
+                                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <Sparkles className="w-5 h-5 text-purple-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-800 mb-1">AI Powered</h3>
+                                            <p className="text-sm text-slate-500">Get instant answers to your real estate questions 24/7.</p>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'calc' && <CalculatorTab />}
+                            {view === 'lists' && <ChecklistsTab />}
+                            {view === 'info' && <InfoTab />}
+                            {view === 'ai' && <AiAssistantTab />}
+                            {view === 'contact' && <AboutTab />}
+                            
+                        </div>
                     </main>
                 </div>
             );
