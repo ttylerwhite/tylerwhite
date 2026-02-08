@@ -1,0 +1,916 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.3">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">import React, { useState, useEffect, useRef } from 'react';</p>
+<p class="p1">import {<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>Calculator,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>CheckSquare,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>HelpCircle,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>BookOpen,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>Home,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>Phone,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>Mail,<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>MapPin,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>ChevronDown,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>ChevronUp,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>DollarSign,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Calendar,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Percent,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>FileText,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>User,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Globe,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Sparkles,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>MessageSquare,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Loader,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Send,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Star,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Quote,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>ArrowRight,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Share2,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Copy,</p>
+<p class="p1"><span class="Apple-converted-space">  </span>Check</p>
+<p class="p1">} from 'lucide-react';</p>
+<p class="p2"><br></p>
+<p class="p1">// --- Constants &amp; Data ---</p>
+<p class="p2"><br></p>
+<p class="p1">const NB_TAX_RATE = 0.01; // 1% Land Transfer Tax for New Brunswick</p>
+<p class="p1">const AVG_LEGAL_FEE = 1200;</p>
+<p class="p1">const REGISTRATION_FEE = 85 * 2; // Deed + Mortgage registration approx</p>
+<p class="p1">const INSPECTION_EST = 500;</p>
+<p class="p2"><br></p>
+<p class="p1">const CHECKLISTS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>preApproval: [</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 1, text: "Check credit score and correct errors" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 2, text: "Gather income verification (T4s, pay stubs)" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 3, text: "Determine down payment amount (5%, 10%, 20%)" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 4, text: "Calculate monthly budget for mortgage + utilities" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 5, text: "Meet with a mortgage broker or lender" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 6, text: "Get Pre-Approval Letter" }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>hunting: [</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 1, text: "Define 'Must-Haves' vs 'Nice-to-Haves'" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 2, text: "Choose target neighbourhoods in Quispamsis/Rothesay/Saint John" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 3, text: "Sign representation agreement with your REALTOR®" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 4, text: "View properties in person" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 5, text: "Check school zones and commute times" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 6, text: "Review property disclosures" }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>closing: [</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 1, text: "Secure home insurance (binder required by lender)" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 2, text: "Transfer utilities (NB Power, Internet, Water)" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 3, text: "Book moving truck or company" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 4, text: "Review final closing statement from lawyer" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 5, text: "Get bank draft for closing costs" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 6, text: "Final walkthrough of the property" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{ id: 7, text: "Pick up keys!" }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>]</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const FAQS = [</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>question: "What is the difference between a deposit and a down payment?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>answer: "A deposit is a sum of money paid when your offer is accepted to show good faith (usually held in trust). A down payment is the total cash you put towards the purchase price at closing. Your deposit usually counts towards your down payment."</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>question: "What are closing costs?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>answer: "These are one-time fees paid on the day you take possession. In New Brunswick, this includes Land Transfer Tax (1%), legal fees, title insurance, and property tax adjustments. It is generally recommended to budget 1.5% - 2.5% of the purchase price."</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>question: "Why do I need a REALTOR®?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>answer: "A REALTOR® protects your interests, negotiates on your behalf, navigates complex paperwork, and provides access to the MLS® system. They ensure you don't overpay and help you avoid legal pitfalls."</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>question: "What is mortgage loan insurance (CMHC)?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>answer: "If your down payment is less than 20%, you are required to purchase mortgage default insurance (often called CMHC insurance). This protects the lender, not you, but allows you to buy with as little as 5% down."</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">];</p>
+<p class="p2"><br></p>
+<p class="p1">const GLOSSARY = [</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "Amortization", def: "The length of time it takes to pay off a mortgage in full, usually 25 years." },</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "Closing Date", def: "The date when the sale becomes final and the new owner takes possession." },</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "Condition", def: "A clause in the offer (like financing or inspection) that must be met for the deal to proceed." },</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "Equity", def: "The difference between your home's market value and the amount you owe on the mortgage." },</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "MLS® System", def: "Multiple Listing Service®. A cooperative selling system operated by real estate boards used by REALTORS® to list and find properties." },</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{ term: "Title Insurance", def: "Insurance that protects you against fraud or defects in the title (ownership history) of the property." }</p>
+<p class="p1">];</p>
+<p class="p2"><br></p>
+<p class="p1">const TESTIMONIALS = [</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: "We sincerely want to thank you, Tyler, for all your hard work. From our very first meeting, my husband and I felt confident trusting you with the search for our first home. You truly listened, were attentive and open to our wishes, always worked around our schedule, offered valuable advice, explained every detail, and guided us through each step of the process. We are so grateful!",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>author: "Ірина Данилюк"</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: "From our first time my husband and I met with you, we new then that we had the right realtor to work with us. Tyler, you're a caring and passionate person and you had listened to every conversation we had during our process in selling and purchasing a new home. We would like to say THANK YOU from the bottom of our hearts and look forward to our new friendship. TO: Sellers or Buyers If your looking for a professional and caring realtor, please reach out to Tyler White at Exit Reality. YOU WILL NOT BE DISAPPOINTED!!",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>author: "P &amp; H Albert"</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">];</p>
+<p class="p2"><br></p>
+<p class="p1">// --- Gemini API Utilities ---</p>
+<p class="p2"><br></p>
+<p class="p1">const callGemini = async (prompt, systemInstruction = "") =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const apiKey = ""; // API key injected by environment</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const payload = {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>contents: [{ parts: [{ text: prompt }] }],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>systemInstruction: { parts: [{ text: systemInstruction }] }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const delays = [1000, 2000, 4000, 8000, 16000];</p>
+<p class="p2"><span class="Apple-converted-space">  </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>for (let i = 0; i &lt; 5; i++) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const response = await fetch(url, {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>method: 'POST',</p>
+<p class="p1"><span class="Apple-converted-space">        </span>headers: { 'Content-Type': 'application/json' },</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body: JSON.stringify(payload)</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>const data = await response.json();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response. Please try again.";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>} catch (e) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (i === 4) return "Sorry, I'm having trouble connecting to the AI service right now.";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>await new Promise(resolve =&gt; setTimeout(resolve, delays[i]));</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">// --- Components ---</p>
+<p class="p2"><br></p>
+<p class="p1">const Header = ({ setView }) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;header className="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="text-center md:text-left"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h1<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>onClick={() =&gt; setView('home')}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>className="text-2xl font-bold flex items-center justify-center md:justify-start gap-2 cursor-pointer hover:text-blue-300 transition-colors"</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;Home className="w-8 h-8 text-blue-400" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>Home Buyer's Hub</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;p className="text-slate-400 text-sm mt-1"&gt;Tyler White, REALTOR® • EXIT Realty Specialists&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="flex items-center gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>{/* Communication Buttons */}</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;div className="flex gap-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;a<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>href="tel:5148163997"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-green-600 text-slate-300 hover:text-white transition-all"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>title="Call Tyler"</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;Phone className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;a<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>href="sms:5148163997"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-blue-500 text-slate-300 hover:text-white transition-all"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>title="Text Tyler"</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;MessageSquare className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;a<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>href="mailto:tyler@exitsj.ca"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-purple-500 text-slate-300 hover:text-white transition-all"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>title="Email Tyler"</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;Mail className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;div className="w-px h-8 bg-slate-700 mx-1 hidden md:block"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">           </span>onClick={() =&gt; setView('home')}</p>
+<p class="p1"><span class="Apple-converted-space">           </span>className="hidden md:block px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 transition-colors font-bold text-sm shadow-lg shadow-blue-900/20"</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>Dashboard</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/header&gt;</p>
+<p class="p1">);</p>
+<p class="p2"><br></p>
+<p class="p1">const NavButton = ({ icon: Icon, label, active, onClick, special }) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">    </span>onClick={onClick}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all duration-200 border-2 ${</p>
+<p class="p1"><span class="Apple-converted-space">      </span>active<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>: special<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'</p>
+<p class="p1"><span class="Apple-converted-space">          </span>: 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 hover:bg-slate-50'</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}`}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;Icon className={`w-6 h-6 mb-2 ${active ? 'text-blue-600' : special ? 'text-purple-600' : 'text-slate-400'}`} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;span className="font-medium text-sm"&gt;{label}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/button&gt;</p>
+<p class="p1">);</p>
+<p class="p2"><br></p>
+<p class="p1">const CalculatorTab = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [price, setPrice] = useState(450000);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [downPaymentPercent, setDownPaymentPercent] = useState(5);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [rate, setRate] = useState(4.5);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [amortization, setAmortization] = useState(25);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [propTaxRate, setPropTaxRate] = useState(1.25); // Approx average for KV/SJ area</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Derived values</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const downPaymentAmount = price * (downPaymentPercent / 100);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const mortgageAmount = price - downPaymentAmount;</p>
+<p class="p2"><span class="Apple-converted-space">  </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// CMHC Estimation (Rough tiers for Canada)</p>
+<p class="p1"><span class="Apple-converted-space">  </span>let cmhcRate = 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (downPaymentPercent &lt; 10) cmhcRate = 0.04;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>else if (downPaymentPercent &lt; 15) cmhcRate = 0.031;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>else if (downPaymentPercent &lt; 20) cmhcRate = 0.028;</p>
+<p class="p2"><span class="Apple-converted-space">  </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const cmhcPremium = downPaymentPercent &lt; 20 ? mortgageAmount * cmhcRate : 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalMortgage = mortgageAmount + cmhcPremium;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Monthly Payment Calculation</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const monthlyRate = rate / 100 / 12;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const numPayments = amortization * 12;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const mortgagePayment = (totalMortgage * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);</p>
+<p class="p2"><span class="Apple-converted-space">  </span></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Property Tax Calculation</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const annualPropTax = price * (propTaxRate / 100);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const monthlyPropTax = annualPropTax / 12;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalMonthly = mortgagePayment + monthlyPropTax;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Closing Costs</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const landTransferTax = Math.max(price * NB_TAX_RATE, 0);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalClosing = landTransferTax + AVG_LEGAL_FEE + REGISTRATION_FEE + INSPECTION_EST;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="space-y-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="grid md:grid-cols-2 gap-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;Calculator className="w-5 h-5 text-blue-500" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Monthly Payment Estimator</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/h3&gt;</p>
+<p class="p2"><span class="Apple-converted-space">          </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="space-y-5 flex-grow"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;label className="block text-sm font-medium text-slate-600 mb-1"&gt;Home Price&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="absolute left-3 top-3 text-slate-400"&gt;$&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;input<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>type="number"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>value={price}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onChange={(e) =&gt; setPrice(Number(e.target.value))}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="grid grid-cols-2 gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;label className="block text-sm font-medium text-slate-600 mb-1"&gt;Down Payment (%)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;input<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>type="number"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>value={downPaymentPercent}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onChange={(e) =&gt; setDownPaymentPercent(Number(e.target.value))}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;label className="block text-sm font-medium text-slate-600 mb-1"&gt;Interest Rate (%)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;input<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>type="number"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>step="0.1"</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>value={rate}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onChange={(e) =&gt; setRate(Number(e.target.value))}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="grid grid-cols-2 gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;label className="block text-sm font-medium text-slate-600 mb-1"&gt;Amortization (Yrs)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;select<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                   </span>value={amortization}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                   </span>onChange={(e) =&gt; setAmortization(Number(e.target.value))}</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;option value="15"&gt;15 Years&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;option value="20"&gt;20 Years&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;option value="25"&gt;25 Years&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;option value="30"&gt;30 Years&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;label className="block text-sm font-medium text-slate-600 mb-1"&gt;Prop. Tax Rate (%)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;input<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>type="number"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>step="0.01"</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>value={propTaxRate}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onChange={(e) =&gt; setPropTaxRate(Number(e.target.value))}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="mt-8 pt-8 border-t border-slate-100 flex flex-col justify-end"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex justify-between items-center mb-2 text-sm text-slate-500"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span&gt;Mortgage Principal + Interest&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span&gt;${mortgagePayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex justify-between items-center mb-4 text-sm text-slate-500"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span&gt;Est. Property Tax (Monthly)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span&gt;${monthlyPropTax.toLocaleString(undefined, { maximumFractionDigits: 0 })}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">             </span></p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg mb-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span className="text-blue-900 font-bold"&gt;Total Monthly&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;span className="text-2xl font-bold text-blue-700"&gt;${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;p className="text-xs text-slate-400 text-center"&gt;*Does not include heating or electricity.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;FileText className="w-5 h-5 text-green-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>Closing Cost Estimator (NB)</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/h3&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="space-y-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="flex justify-between items-center pb-3 border-b border-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="text-slate-600 text-sm"&gt;Land Transfer Tax (1%)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="font-semibold text-slate-700"&gt;${landTransferTax.toLocaleString()}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="flex justify-between items-center pb-3 border-b border-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="text-slate-600 text-sm"&gt;Legal Fees (Est.)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="font-semibold text-slate-700"&gt;${AVG_LEGAL_FEE}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="flex justify-between items-center pb-3 border-b border-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="text-slate-600 text-sm"&gt;Deed/Mortgage Registration (Est.)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="font-semibold text-slate-700"&gt;${REGISTRATION_FEE}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="flex justify-between items-center pb-3 border-b border-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="text-slate-600 text-sm"&gt;Home Inspection (Est.)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="font-semibold text-slate-700"&gt;${INSPECTION_EST}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div className="flex justify-between items-center pb-3 border-b border-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="text-slate-600 text-sm"&gt;Fuel/Tax Adjustments (Est.)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;span className="font-semibold text-slate-700"&gt;$500&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">              </span></p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="flex justify-between items-center mb-2 pb-2 border-b border-green-200"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;span className="text-green-800 text-sm font-medium"&gt;Down Payment ({downPaymentPercent}%)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;span className="font-bold text-green-800"&gt;${downPaymentAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="flex justify-between items-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;span className="text-green-900 font-bold text-lg"&gt;Total Cash Needed&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;span className="text-xl font-bold text-green-700"&gt;${(totalClosing + downPaymentAmount + 500).toLocaleString(undefined, { maximumFractionDigits: 0 })}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100 flex-grow"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h4 className="text-purple-800 font-bold text-sm mb-1 flex items-center gap-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;Sparkles className="w-3 h-3" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>First-Time Buyer Tip</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/h4&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p className="text-purple-700 text-xs leading-relaxed"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>Don't forget the &lt;strong&gt;First-Time Home Buyer's Tax Credit (HBTC)&lt;/strong&gt;! You can likely claim up to $10,000 on your tax return, resulting in a rebate of about &lt;strong&gt;$1,500&lt;/strong&gt;. Ask your accountant!</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="bg-slate-100 border-l-4 border-slate-400 p-4 rounded-r-lg text-sm text-slate-600 leading-relaxed"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong&gt;Disclaimer:&lt;/strong&gt; All figures provided by this calculator are estimates for planning purposes only.<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>I am a REALTOR®, not a mortgage expert. Please reach out to a qualified mortgage specialist for exact costing and pre-approval.</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const ChecklistsTab = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [items, setItems] = useState(CHECKLISTS);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [checkedState, setCheckedState] = useState({});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const toggleCheck = (id) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setCheckedState(prev =&gt; ({ ...prev, [id]: !prev[id] }));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const ChecklistGroup = ({ title, list }) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="mb-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h3 className="text-lg font-bold text-slate-800 mb-4"&gt;{title}&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="space-y-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>{list.map(item =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>key={item.id}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; toggleCheck(item.text)}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>className={`flex items-start p-3 rounded-lg border cursor-pointer transition-all ${</p>
+<p class="p1"><span class="Apple-converted-space">              </span>checkedState[item.text] ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-blue-300'</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}`}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center mr-3 transition-colors ${</p>
+<p class="p1"><span class="Apple-converted-space">              </span>checkedState[item.text] ? 'bg-blue-500 border-blue-500' : 'bg-white border-slate-300'</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>{checkedState[item.text] &amp;&amp; &lt;CheckSquare className="w-3.5 h-3.5 text-white" /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span className={`${checkedState[item.text] ? 'text-slate-500 line-through' : 'text-slate-700'}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>{item.text}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="max-w-3xl mx-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;ChecklistGroup title="1. Getting Mortgage Ready" list={items.preApproval} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;ChecklistGroup title="2. The House Hunt" list={items.hunting} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;ChecklistGroup title="3. Closing Day" list={items.closing} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const InfoTab = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [openIndex, setOpenIndex] = useState(null);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="grid md:grid-cols-2 gap-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;HelpCircle className="w-6 h-6 text-purple-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>Common Questions</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="space-y-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{FAQS.map((faq, index) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div key={index} className="border border-slate-200 rounded-lg bg-white overflow-hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>onClick={() =&gt; setOpenIndex(openIndex === index ? null : index)}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>className="w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 hover:bg-slate-50"</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>{faq.question}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>{openIndex === index ? &lt;ChevronUp className="w-4 h-4" /&gt; : &lt;ChevronDown className="w-4 h-4" /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>{openIndex === index &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="p-4 pt-0 text-slate-600 text-sm leading-relaxed bg-slate-50 border-t border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>{faq.answer}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;BookOpen className="w-6 h-6 text-indigo-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>Real Estate Glossary</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="bg-white rounded-xl shadow-sm border border-slate-200 p-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{GLOSSARY.map((item, index) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div key={index} className="p-4 border-b border-slate-100 last:border-0 hover:bg-indigo-50 transition-colors"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;span className="block font-bold text-slate-800 text-sm mb-1"&gt;{item.term}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;span className="block text-slate-600 text-xs"&gt;{item.def}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const AiAssistantTab = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [query, setQuery] = useState("");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [response, setResponse] = useState(null);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [loading, setLoading] = useState(false);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const handleAsk = async (customPrompt = null) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const promptText = customPrompt || query;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!promptText.trim()) return;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>setLoading(true);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setResponse(null);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setQuery(promptText); // Reflect clicked button in input</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const systemPrompt = `</p>
+<p class="p1"><span class="Apple-converted-space">      </span>You are an AI Real Estate Assistant for Tyler White, a REALTOR® based in Saint John, New Brunswick.<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>Your goal is to help potential home buyers with questions about the buying process, local neighborhoods (Quispamsis, Rothesay, Saint John), closing costs, and general real estate advice.</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>Key Guidelines:</p>
+<p class="p1"><span class="Apple-converted-space">      </span>1. Be friendly, professional, and encouraging.</p>
+<p class="p1"><span class="Apple-converted-space">      </span>2. Keep answers concise (under 150 words usually).</p>
+<p class="p1"><span class="Apple-converted-space">      </span>3. For specific legal or financial advice, always add a disclaimer to consult a lawyer or accountant.</p>
+<p class="p1"><span class="Apple-converted-space">      </span>4. If asked about booking a viewing, suggest they use the "Contact Agent" tab to email Tyler directly.</p>
+<p class="p1"><span class="Apple-converted-space">      </span>5. NB Specifics: Mention the 1% Land Transfer Tax, average closing costs, and the importance of a home inspection.</p>
+<p class="p1"><span class="Apple-converted-space">    </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const result = await callGemini(promptText, systemPrompt);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setResponse(result);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setLoading(false);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const suggestions = [</p>
+<p class="p1"><span class="Apple-converted-space">    </span>"What are the closing costs in NB?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>"Tell me about schools in Quispamsis",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>"What should I look for in a century home?",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>"Explain 'Deposit' vs 'Down Payment'"</p>
+<p class="p1"><span class="Apple-converted-space">  </span>];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="max-w-2xl mx-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;Sparkles className="w-5 h-5 text-purple-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>Ask Tyler's AI Assistant</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;p className="text-slate-500 text-sm mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>Have a question about buying in NB? Ask away! I can help clarify terms, estimate costs, or tell you about neighbourhoods.</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Suggestion Chips */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="flex flex-wrap gap-2 mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{suggestions.map((s, i) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">              </span>key={i}</p>
+<p class="p1"><span class="Apple-converted-space">              </span>onClick={() =&gt; handleAsk(s)}</p>
+<p class="p1"><span class="Apple-converted-space">              </span>className="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-full hover:bg-purple-100 transition-colors border border-purple-100"</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>✨ {s}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Input Area */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;textarea</p>
+<p class="p1"><span class="Apple-converted-space">            </span>value={query}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>onChange={(e) =&gt; setQuery(e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>placeholder="Type your question here..."</p>
+<p class="p1"><span class="Apple-converted-space">            </span>className="w-full p-4 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all outline-none resize-none h-32 text-slate-700"</p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; handleAsk()}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>disabled={loading || !query}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${</p>
+<p class="p1"><span class="Apple-converted-space">              </span>loading || !query<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>? 'bg-slate-200 text-slate-400'<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>: 'bg-purple-600 text-white hover:bg-purple-700 shadow-md'</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}`}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{loading ? &lt;Loader className="w-5 h-5 animate-spin" /&gt; : &lt;Send className="w-5 h-5" /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Response Area */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>{response &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="animate-in fade-in slide-in-from-bottom-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="bg-slate-50 p-6 rounded-xl border border-slate-100 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="absolute -top-3 left-6 bg-white px-2 py-1 text-xs font-bold text-slate-400 border border-slate-100 rounded shadow-sm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>AI Response</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;p className="text-slate-700 leading-relaxed whitespace-pre-wrap"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>{response}</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-xs text-slate-400 mt-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>AI-generated information is for reference only. Please confirm important details with Tyler.</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const AboutTab = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [drafting, setDrafting] = useState(false);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [draftPrompt, setDraftPrompt] = useState("");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [draftResult, setDraftResult] = useState("");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [draftLoading, setDraftLoading] = useState(false);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const handleDraftEmail = async () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!draftPrompt) return;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setDraftLoading(true);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const system = "You are a helpful assistant drafting a professional email from a home buyer to their Realtor, Tyler White. Keep it polite, concise, and clear.";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const res = await callGemini(`Draft an email to Tyler: ${draftPrompt}`, system);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setDraftResult(res);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setDraftLoading(false);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="max-w-4xl mx-auto space-y-8"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>{/* Profile Header Card */}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div id="profile-header" className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;div className="h-32 bg-slate-800 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;div className="absolute -bottom-12 left-8 md:left-12"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="w-24 h-24 bg-slate-200 rounded-full border-4 border-white flex items-center justify-center shadow-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;User className="w-12 h-12 text-slate-400" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;div className="pt-16 pb-8 px-8 md:px-12 flex flex-col md:flex-row gap-8 justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;h2 className="text-3xl font-bold text-slate-900"&gt;Tyler White&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;p className="text-blue-600 font-bold text-lg mb-4"&gt;REALTOR® • EXIT Realty Specialists&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;p className="text-slate-600 max-w-lg leading-relaxed"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>As a dedicated REALTOR® serving Saint John, Quispamsis, and Rothesay, I pride myself on making the home buying process as smooth as possible. With a focus on data-driven advice and personal connection, I help my clients find not just a house, but a home.</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">           </span></p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;div className="flex flex-col gap-3 min-w-[250px]"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>{/* Call &amp; Text Buttons Row */}</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="grid grid-cols-2 gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;a<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                 </span>href="tel:5148163997"</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>className="flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-md text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;Phone className="w-4 h-4" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>Call Me</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;a<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                 </span>href="sms:5148163997"</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>className="flex items-center justify-center gap-2 bg-blue-500 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-md text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;MessageSquare className="w-4 h-4" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>Text Me</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">               </span>onClick={() =&gt; window.location.href = 'mailto:tyler@exitsj.ca'}</p>
+<p class="p1"><span class="Apple-converted-space">               </span>className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg hover:shadow-slate-300 flex items-center justify-center gap-2"</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;Mail className="w-4 h-4" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>Book a Viewing</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">               </span>onClick={() =&gt; setDrafting(!drafting)}</p>
+<p class="p1"><span class="Apple-converted-space">               </span>className="w-full bg-purple-50 text-purple-700 py-3 rounded-xl font-bold hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 border border-purple-100"</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;Sparkles className="w-4 h-4" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>Draft Email with AI</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">         </span>{/* Email Drafter */}</p>
+<p class="p1"><span class="Apple-converted-space">         </span>{drafting &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="px-8 pb-8 animate-in fade-in slide-in-from-top-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="bg-purple-50 p-6 rounded-2xl text-left border border-purple-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;label className="block text-sm font-bold text-purple-800 mb-2"&gt;What do you want to ask Tyler?&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;textarea<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="w-full p-3 text-sm border border-purple-200 rounded-xl mb-3 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all"</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>rows="3"</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>placeholder="e.g. Ask if the house on Main St is still available for a viewing this Saturday..."</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>value={draftPrompt}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onChange={(e) =&gt; setDraftPrompt(e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onClick={handleDraftEmail}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>disabled={draftLoading}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="bg-purple-600 text-white text-sm px-6 py-2.5 rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 shadow-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>{draftLoading ? "Writing..." : "Generate Professional Email"}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>{draftResult &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;div className="mt-4 p-4 bg-white rounded-xl border border-purple-100 text-sm text-slate-700 whitespace-pre-wrap relative group"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>{draftResult}</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                       </span>onClick={() =&gt; navigator.clipboard.writeText(draftResult)}</p>
+<p class="p1"><span class="Apple-converted-space">                       </span>className="absolute top-2 right-2 p-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"</p>
+<p class="p1"><span class="Apple-converted-space">                       </span>title="Copy"</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                       </span>&lt;CheckSquare className="w-4 h-4" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">         </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div className="grid md:grid-cols-2 gap-8"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Contact Info Card */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;User className="w-5 h-5 text-blue-500" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Contact Details</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="space-y-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>{/* Phone Section */}</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex items-start gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;Phone className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-sm text-slate-500 mb-1"&gt;Phone&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-slate-900 font-medium text-lg leading-none mb-2"&gt;(514) 816-3997 &lt;span className="text-slate-400 text-sm font-normal"&gt;Cell&lt;/span&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-slate-600 text-base"&gt;(506) 717-8343 &lt;span className="text-slate-400 text-sm"&gt;Office&lt;/span&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="w-full h-px bg-slate-100"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>{/* Email Section */}</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex items-start gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;Mail className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-sm text-slate-500 mb-1"&gt;Email&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;a href="mailto:tyler@exitsj.ca" className="text-slate-900 font-medium text-lg hover:text-blue-600 transition-colors block"&gt;tyler@exitsj.ca&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="w-full h-px bg-slate-100"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>{/* Website Section */}</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex items-start gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;Globe className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-sm text-slate-500 mb-1"&gt;Website&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;a href="https://tylerwhite.ca" target="_blank" rel="noreferrer" className="text-slate-900 font-medium text-lg hover:text-blue-600 transition-colors block"&gt;tylerwhite.ca&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="w-full h-px bg-slate-100"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">             </span>{/* Office Section */}</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;div className="flex items-start gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div className="mt-1 p-2 bg-blue-50 rounded-lg text-blue-600"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;MapPin className="w-5 h-5" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-sm text-slate-500 mb-1"&gt;Office Address&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;p className="text-slate-900 font-medium text-base leading-relaxed"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>EXIT Realty Specialists&lt;br/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>1020 Rothesay Road&lt;br/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>Saint John, NB&lt;br/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                   </span>E2H 2H8</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">               </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Testimonials Card */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;Star className="w-5 h-5 text-yellow-500" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Client Testimonials</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div className="space-y-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{TESTIMONIALS.map((t, i) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div key={i} className="relative pl-6 border-l-4 border-yellow-200"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;Quote className="w-4 h-4 text-yellow-400 absolute -top-1 left-6 opacity-50" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p className="text-slate-600 italic mb-2 relative z-10"&gt;"{t.text}"&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p className="text-slate-800 font-bold text-sm"&gt;— {t.author}&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="bg-blue-50 p-4 rounded-xl text-center mt-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;p className="text-blue-800 font-medium text-sm"&gt;Ready to write your own success story?&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">export default function HomeBuyerApp() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const [view, setView] = useState('home');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div className="min-h-screen bg-slate-50 font-sans text-slate-800"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;Header setView={setView} /&gt;</p>
+<p class="p2"><span class="Apple-converted-space">      </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;main className="max-w-4xl mx-auto p-6"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Navigation Grid */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;NavButton<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>icon={Calculator}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>label="Calculators"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>active={view === 'calc'}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; setView('calc')}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;NavButton<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>icon={CheckSquare}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>label="Checklists"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>active={view === 'lists'}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; setView('lists')}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;NavButton<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>icon={HelpCircle}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>label="FAQ &amp; Info"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>active={view === 'info'}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; setView('info')}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;NavButton<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>icon={Sparkles}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>label="Ask AI"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>active={view === 'ai'}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>special={true}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; setView('ai')}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;NavButton<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>icon={User}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>label="About Me"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>active={view === 'contact'}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>onClick={() =&gt; setView('contact')}<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>{/* Dynamic Content Area */}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div className="animate-in fade-in slide-in-from-bottom-4 duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'home' &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="text-center pb-6 pt-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="bg-white rounded-2xl px-8 pt-6 pb-8 shadow-sm border border-slate-100 max-w-2xl mx-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;h2 className="text-2xl font-bold text-slate-800 mb-4"&gt;Welcome to Your Home Buying Journey&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p className="text-slate-600 mb-8 leading-relaxed"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>Buying a home is one of the biggest decisions you'll make. I've created this tool to help you navigate the process in Quispamsis and beyond.<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>Use the calculators to budget, the checklists to stay organized, and the FAQ to learn the lingo.</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="flex justify-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>onClick={() =&gt; setView('contact')}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>className="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 flex items-center gap-2 group"</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>Get Started</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">              </span></p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="grid md:grid-cols-3 gap-6 mt-8 text-left"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onClick={() =&gt; setView('calc')}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-green-200 transition-all cursor-pointer group"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;DollarSign className="w-5 h-5 text-green-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;h3 className="font-bold text-slate-800 mb-1"&gt;Know Your Budget&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;p className="text-sm text-slate-500"&gt;Estimate monthly payments and New Brunswick closing costs.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onClick={() =&gt; setView('lists')}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;CheckSquare className="w-5 h-5 text-blue-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;h3 className="font-bold text-slate-800 mb-1"&gt;Stay Organized&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;p className="text-sm text-slate-500"&gt;Track your progress from pre-approval to closing day.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                  </span>onClick={() =&gt; setView('ai')}</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm text-left hover:shadow-md hover:border-purple-200 transition-all cursor-pointer group"</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;Sparkles className="w-5 h-5 text-purple-600" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;h3 className="font-bold text-slate-800 mb-1"&gt;AI Powered&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                  </span>&lt;p className="text-sm text-slate-500"&gt;Get instant answers to your real estate questions 24/7.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'calc' &amp;&amp; &lt;CalculatorTab /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'lists' &amp;&amp; &lt;ChecklistsTab /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'info' &amp;&amp; &lt;InfoTab /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'ai' &amp;&amp; &lt;AiAssistantTab /&gt;}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>{view === 'contact' &amp;&amp; &lt;AboutTab /&gt;}</p>
+<p class="p2"><span class="Apple-converted-space">          </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/main&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p1">}</p>
+</body>
+</html>
